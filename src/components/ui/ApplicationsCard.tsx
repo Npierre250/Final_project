@@ -106,10 +106,10 @@ export default function ApplicationCard({ data }: any) {
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex flex-col">
+              {/* <div className="flex flex-col">
                 <span className="text-[#737373] font-light text-[15px]">License Copy</span>
                 <a href={data.licenceCopy} className="text-blue-500 underline">View</a>
-              </div>
+              </div> */}
             </div>
           </>
         )}
@@ -150,10 +150,10 @@ export default function ApplicationCard({ data }: any) {
                <span className="text-[#737373] font-light text-[15px]">TIN Number</span>
                <h4>{data.tinNumber}</h4>
              </div>
-             <div className="flex flex-col">
+             {/* <div className="flex flex-col">
                <span className="text-[#737373] font-light text-[15px]">License Copy</span>
                <a href={data.licenceCopy} className="text-blue-500 underline">View</a>
-             </div>
+             </div> */}
            </div> 
           </>
         )}

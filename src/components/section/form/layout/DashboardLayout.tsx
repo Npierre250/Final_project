@@ -111,7 +111,7 @@ export default function DashboardLayout() {
 
   // Remove the "Report" link if the user is not a super admin
   const filteredMenuPTwo = user?.data?.role==="superAdmin"
-    ? MENUP_TWO
+    ? MENUP_TWO.filter(item=>item.title!=="Subscription")
     : MENUP_TWO.filter((item) => item.title !== "Report");
 
   const handleLogout = () => {

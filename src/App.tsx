@@ -33,7 +33,7 @@ function App() {
           <Route
             index
             element={
-              user?.data.email !== "calvinusbukaran@gmail.com" ? (
+              user?.data.role !== "superAdmin" ? (
                 <DashboardUserHome />
               ) : (
                 <DashboardHome />
