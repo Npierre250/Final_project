@@ -1,82 +1,129 @@
-import { CheckCircleIcon } from "@heroicons/react/16/solid";
-import classNames from "classnames";
-import { closePaymentModal, FlutterWaveButton, useFlutterwave } from "flutterwave-react-v3";
-import { useRef, useState } from "react";
-import { useOnClickOutside } from "usehooks-ts";
-import Close from "../../components/vectors/Close";
-import { toast } from "react-hot-toast";
-import getUserInfo from "../../utils/getUserInfo";
-import axios from "axios";
+import { CheckCircleIcon } from "@heroicons/react/16/solid"
+import axios from "axios"
+import classNames from "classnames"
+import { closePaymentModal } from "flutterwave-react-v3"
+import { useRef, useState } from "react"
+import { useOnClickOutside } from "usehooks-ts"
+import Close from "../../components/vectors/Close"
+import getUserInfo from "../../utils/getUserInfo"
 
 export default function Subscription() {
-  const user:any=getUserInfo()
+  const user: any = getUserInfo()
   const includedFeatures = [
     "Private forum access",
     "Member resources",
     "Entry to annual conference",
-    "Official member t-shirt",
-  ];
+    "Official member t-shirt"
+  ]
 
-  const [showPop, setShowPop] = useState(false);
-  const [payNumber, setPayNumber] = useState("");
+  const [showPop, setShowPop] = useState(false)
+  const [payNumber, setPayNumber] = useState("")
+  const [isLoading, setIsLoarding] = useState<boolean>(false)
+  const [paymentResponse, setPaymentResponse] = useState<string>("Pay now")
 
-  const ref = useRef(null);
+  const ref = useRef(null)
 
   const handleClickOutside = () => {
-    setShowPop(false);
-  };
+    setShowPop(false)
+  }
 
-  useOnClickOutside(ref, handleClickOutside);
+  useOnClickOutside(ref, handleClickOutside)
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false)
+
   const config = {
-    public_key: 'FLWPUBK_TEST-cd7e40ef021af3b02cdb4391b5c08f37-X',
+    public_key: "FLWPUBK_TEST-cd7e40ef021af3b02cdb4391b5c08f37-X",
     tx_ref: Date.now().toString(),
     amount: 300,
-    currency: 'RWF',
-    payment_options: 'card,mobilemoney,ussd',
+    currency: "RWF",
+    payment_options: "card,mobilemoney,ussd",
     customer: {
       email: user.data.email,
       phone_number: payNumber,
-      name: user.data.name,
+      name: user.data.name
     },
     customizations: {
-      title: 'Neab',
-      description: 'Neab Payment',
-      logo: 'https://neab.vercel.app/logo.png',
-    },
-  };
-  const token=localStorage.getItem("token")
-  console.log("token===",token)
+      title: "Neab",
+      description: "Neab Payment",
+      logo: "https://neab.vercel.app/logo.png"
+    }
+  }
+
+  const token = localStorage.getItem("token")
+  // console.log("token===", token)
+
   const fwConfig = {
     ...config,
-    text: 'Pay Now',
+    text: "Pay Now",
     callback: async (response: any) => {
-      console.log(response);
+      console.log(response)
 
       try {
-        await axios.post(`${import.meta.env.VITE_REACT_APP_API_URL}/subscription`, {
-          userId: user.data._id,
-          //  '6655dd888ea19671cd4a9d7e', // Replace with actual user ID
-          amount: 300,
-          currency: 'RWF',
-          beneficiaryName: 'kairosmartial', 
-          sender: 'Flutterwave Developers',
-          senderCountry: 'RWF',
-          mobileNumber: '23457558595'
-        },{
-          headers:{
-            Authorization: `Bearer ${token}`,
+        await axios.post(
+          `${import.meta.env.VITE_REACT_APP_API_URL}/subscription`,
+          {
+            userId: user.data._id,
+            //  '6655dd888ea19671cd4a9d7e', // Replace with actual user ID
+            amount: 300,
+            currency: "RWF",
+            beneficiaryName: "kairosmartial",
+            sender: "Flutterwave Developers",
+            senderCountry: "RWF",
+            mobileNumber: "23457558595"
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
-        });
+        )
 
-        closePaymentModal();
+        closePaymentModal()
       } catch (error) {
-        console.error('Subscription creation failed:', error);
+        console.error("Subscription creation failed:", error)
       }
     },
-    onClose: () => {},
-  };
+    onClose: () => {}
+  }
+
+  const handlePayment = async (number: string) => {
+    if (!number) {
+      console.log("Number is required")
+    }
+    try {
+      setIsLoarding(true)
+      const response = await fetch(
+        `${import.meta.env.VITE_REACT_APP_API_URL}/subscription/payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ number: number })
+        }
+      )
+
+      const result = await response.json()
+
+      console.log(result)
+
+      if (!response.ok) {
+        setIsLoarding(false)
+        throw new Error(result.error)
+      }
+
+      setIsLoarding(false)
+      setPaymentResponse(result.message)
+
+      setTimeout(() => {
+        setShowPop(false)
+        setPaymentResponse("Pay now")
+      }, 1000)
+    } catch (error) {
+      setLoading(false)
+      console.log("Fail for payment")
+    }
+  }
 
   return (
     <>
@@ -207,22 +254,30 @@ export default function Subscription() {
               <div className="flex flex-col gap-1">
                 <span>Phone Number:</span>
                 <input
-                  type="email"
-                  name="email"
+                  type="text"
                   onChange={(e) => setPayNumber(e.target.value)}
                   placeholder="Enter your phone number"
                   className={classNames({
                     "bg-[#E8E8EA] w-full py-4 px-6 rounded-2xl border focus:border-black focus:outline-none transition-all placeholder:font-light placeholder:text-[17px] placeholder:text-[#BBBABF] ":
-                      true,
+                      true
                   })}
                 />
-                  <FlutterWaveButton {...fwConfig} />
+                {/* <FlutterWaveButton {...fwConfig} /> */}
               </div>
-              
+
+              <div className="flex items-center justify-center">
+                <button
+                  onClick={() => handlePayment(payNumber)}
+                  disabled={isLoading}
+                  className="inline-flex items-center justify-center w-[150px] mb-4 py-1 rounded-md text-[26px] text-center bg-green-500 font-medium px-4"
+                >
+                  {isLoading ? "paymet..." : paymentResponse}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
     </>
-  );
+  )
 }
